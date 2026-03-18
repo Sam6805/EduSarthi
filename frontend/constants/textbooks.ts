@@ -1,0 +1,63 @@
+import { Textbook, UploadedFile } from '@/types';
+
+export const TEXTBOOKS: Textbook[] = [
+  {
+    id: 'class6-science',
+    name: 'Class 6 Science',
+    class: '6',
+    subject: 'Science',
+    chapters: 16,
+  },
+  {
+    id: 'class7-geography',
+    name: 'Class 7 Geography',
+    class: '7',
+    subject: 'Geography',
+    chapters: 18,
+  },
+  {
+    id: 'class8-mathematics',
+    name: 'Class 8 Mathematics',
+    class: '8',
+    subject: 'Mathematics',
+    chapters: 16,
+  },
+  {
+    id: 'class8-science',
+    name: 'Class 8 Science',
+    class: '8',
+    subject: 'Science',
+    chapters: 18,
+  },
+  {
+    id: 'class9-history',
+    name: 'Class 9 History',
+    class: '9',
+    subject: 'History',
+    chapters: 15,
+  },
+  {
+    id: 'class10-english',
+    name: 'Class 10 English',
+    class: '10',
+    subject: 'English',
+    chapters: 20,
+  },
+];
+
+export const UPLOADED_TEXTBOOKS: UploadedFile[] = [
+  {
+    id: 'uploaded-1',
+    filename: 'class6_science_complete.pdf',
+    uploadedAt: new Date('2024-03-15'),
+    size: 45.2,
+    chapters: 16,
+  },
+  {
+    id: 'uploaded-2',
+    filename: 'class8_mathematics_part1.pdf',
+    uploadedAt: new Date('2024-03-14'),
+    size: 32.8,
+    chapters: 8,
+  },
+];
