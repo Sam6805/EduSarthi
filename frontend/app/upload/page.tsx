@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { UploadTextbook } from '@/components/upload/UploadTextbook';
 import { UploadedFilesList } from '@/components/upload/UploadedFilesList';
 import { UPLOADED_TEXTBOOKS } from '@/constants/textbooks';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { UploadedFile } from '@/types';
 
 export default function UploadPage() {
@@ -31,30 +31,56 @@ export default function UploadPage() {
 
   const handleFileSelect = async (file: File) => {
     setUploading(true);
-    // Simulate upload processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    
+    try {
+      // Try to upload to backend first
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('textbook_name', file.name.replace('.pdf', ''));
+      formData.append('class_level', 'Auto-detected');
+      formData.append('subject', 'General');
 
-    // Create new uploaded file
-    const newFile: UploadedFile = {
-      id: `uploaded-${Math.random().toString(36).substr(2, 9)}`,
-      filename: file.name,
-      uploadedAt: new Date(),
-      size: file.size / (1024 * 1024), // Convert to MB
-      chapters: Math.floor(Math.random() * 20) + 10,
-    };
+      try {
+        const response = await fetch(`${backendUrl}/api/ingest/upload`, {
+          method: 'POST',
+          body: formData,
+        });
 
-    // Add to list
-    setUploadedFiles((prev) => [...prev, newFile]);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Backend upload successful:', data);
+        } else {
+          console.warn('Backend upload failed, saving to local storage only');
+        }
+      } catch (error) {
+        console.warn('Backend not available, saving to local storage only:', error);
+      }
 
-    // Save to localStorage (only custom uploads, not defaults)
-    const customUploads = uploadedFiles.filter((f) => f.id.startsWith('uploaded-'));
-    const newCustomUploads = [...customUploads, newFile];
-    localStorage.setItem(
-      'uploadedFiles',
-      JSON.stringify(newCustomUploads.map((f) => ({ ...f, uploadedAt: f.uploadedAt.toISOString() })))
-    );
+      // Create new uploaded file
+      const newFile: UploadedFile = {
+        id: `uploaded-${Math.random().toString(36).substr(2, 9)}`,
+        filename: file.name,
+        uploadedAt: new Date(),
+        size: file.size / (1024 * 1024), // Convert to MB
+        chapters: Math.floor(Math.random() * 20) + 10,
+      };
 
-    setUploading(false);
+      // Add to list
+      setUploadedFiles((prev) => [...prev, newFile]);
+
+      // Save to localStorage (only custom uploads, not defaults)
+      const customUploads = uploadedFiles.filter((f) => f.id.startsWith('uploaded-'));
+      const newCustomUploads = [...customUploads, newFile];
+      localStorage.setItem(
+        'uploadedFiles',
+        JSON.stringify(newCustomUploads.map((f) => ({ ...f, uploadedAt: f.uploadedAt.toISOString() })))
+      );
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (

@@ -20,14 +20,10 @@ export function UploadedFilesList({ files }: UploadedFilesListProps) {
 
   return (
     <div className="space-y-4">
-      {files.map((file, index) => (
+      {files.map((file) => (
         <Card
           key={file.id}
           className="hover:shadow-premium transition-all duration-300 hover:-translate-y-0.5"
-          style={{
-            animationDelay: `${index * 0.05}s`,
-            animation: 'fadeIn 0.5s ease-out',
-          }}
         >
           <CardContent className="py-5">
             <div className="flex items-start justify-between gap-4">

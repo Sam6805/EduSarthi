@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { TEXTBOOKS, UPLOADED_TEXTBOOKS } from '@/constants/textbooks';
+import { TEXTBOOKS } from '@/constants/textbooks';
 
 interface TextbookSelectorProps {
   selectedId: string;

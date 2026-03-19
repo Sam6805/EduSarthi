@@ -11,7 +11,7 @@ import { AnswerCard } from '@/components/tutor/AnswerCard';
 import { SampleQuestions } from '@/components/tutor/SampleQuestions';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { SAMPLE_QUESTIONS } from '@/constants/sampleQuestions';
+import { getSampleQuestionsForTextbook } from '@/constants/sampleQuestions';
 
 export default function TutorPage() {
   const {
@@ -29,6 +29,10 @@ export default function TutorPage() {
   const [lowDataMode, setLowDataMode] = useState(false);
   const [showDetailed, setShowDetailed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Check if selected textbook is an uploaded file
+  const isUploadedFile = selectedTextbook.startsWith('uploaded-');
+  const sampleQuestions = getSampleQuestionsForTextbook(selectedTextbook);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -76,18 +80,30 @@ export default function TutorPage() {
                       <div className="text-7xl mb-4">📖</div>
                       <h2 className="text-3xl font-bold text-gray-900">Welcome to EduTutor!</h2>
                       <p className="text-lg text-gray-600 max-w-xl mx-auto">
-                        Ask me about anything from your textbook and I'll explain it in simple words.
-                        I can give you quick answers or dive deeper — you choose.
+                        {isUploadedFile 
+                          ? 'You have selected an uploaded textbook. Ask me anything from it, and I\'ll find answers directly from your file.' 
+                          : 'Ask me about anything from your textbook and I\'ll explain it in simple words. I can give you quick answers or dive deeper — you choose.'}
                       </p>
                     </div>
 
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-                      <p className="text-sm font-semibold text-gray-900 mb-4">👇 Try asking one of these:</p>
-                      <SampleQuestions
-                        questions={SAMPLE_QUESTIONS}
-                        onSelectQuestion={sendQuestion}
-                      />
-                    </div>
+                    {!isUploadedFile && (
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                        <p className="text-sm font-semibold text-gray-900 mb-4">👇 Try asking one of these:</p>
+                        <SampleQuestions
+                          questions={sampleQuestions}
+                          onSelectQuestion={sendQuestion}
+                        />
+                      </div>
+                    )}
+
+                    {isUploadedFile && (
+                      <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
+                        <p className="text-sm text-amber-900 font-semibold flex items-start gap-2">
+                          <span className="text-lg">💡</span>
+                          <span><strong>Tip:</strong> Ask any question about your uploaded file, and the answers will be extracted directly from your PDF. The system will search through your file to find the most relevant answers.</span>
+                        </p>
+                      </div>
+                    )}
 
                     <div className="grid md:grid-cols-3 gap-4 text-left">
                       <div className="space-y-2">
