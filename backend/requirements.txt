@@ -22,7 +22,7 @@ scipy>=1.11.0
 # LLM Integrations  (all optional – Claude is called via urllib, no package needed)
 # Uncomment if you use OpenAI or Gemini:
 # openai>=1.3.0
-# google-generativeai>=0.3.0
+google-generativeai>=0.3.0
 
 # Dev / Testing
 pytest>=7.4.0
