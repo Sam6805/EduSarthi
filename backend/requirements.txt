@@ -1,30 +1,29 @@
-# Education Tutor Backend Requirements
-
-# FastAPI and Web Framework
+# EduSarthi Backend Requirements
+# ─────────────────────────────────
+# REQUIRED (always install these)
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
+python-multipart>=0.0.6
+python-dotenv>=1.0.0
 
 # PDF Processing
 PyPDF2==3.0.1
 pdfplumber==0.10.3
 
-# Embeddings and Vector Store
+# Embeddings & Vector Store  (optional – app works without them)
+# Install if you want PDF ingestion + semantic search:
+#   pip install sentence-transformers faiss-cpu numpy scipy
 sentence-transformers>=2.2.2
 faiss-cpu>=1.7.0
-
-# Scientific Computing
 numpy>=1.24.0
 scipy>=1.11.0
 
-# LLM Integrations (optional)
-openai>=1.3.0
+# LLM Integrations  (all optional – Claude is called via urllib, no package needed)
+# Uncomment if you use OpenAI or Gemini:
+# openai>=1.3.0
 google-generativeai>=0.3.0
 
-# Development and Testing
+# Dev / Testing
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
-python-multipart>=0.0.6
-
-# Utilities
-python-dotenv>=1.0.0

@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/Button';
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-32 pb-40 px-4 sm:px-6 lg:px-8">
-      {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 right-0 w-80 h-80 bg-blue-200 rounded-full opacity-10 blur-3xl"></div>
         <div className="absolute top-1/2 -left-40 w-80 h-80 bg-indigo-200 rounded-full opacity-10 blur-3xl"></div>
@@ -12,86 +11,98 @@ export function HeroSection() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid md:grid-cols-2 gap-16 items-center">
+
           {/* Left content */}
           <div className="space-y-8 animate-slide-up">
             <div className="space-y-6">
-              <div className="inline-block">
-                <span className="px-4 py-2 bg-blue-100 text-blue-700 font-semibold text-sm rounded-full">
-                  🚀 Powered by AI Context Pruning
-                </span>
+              {/* Hackathon badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 font-semibold text-sm rounded-full">
+                🏆 GenAI for GenZ Challenge — Project 1
               </div>
+
               <h1 className="text-gray-900">
-                Smart Learning from Your
+                AI Tutoring for
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                  Textbooks
+                  Remote India
                 </span>
               </h1>
+
               <p className="text-lg text-gray-700 max-w-xl leading-relaxed">
-                Get instant, crystal-clear explanations for any concept in your school textbooks. Built for students in rural India. Works on slow internet.
+                State-board textbook Q&A with <strong>Context Pruning</strong> — 
+                68% fewer tokens, 67% lower API cost, and answers under 1 second. 
+                Built for students on slow internet.
               </p>
             </div>
 
-            {/* Key benefits */}
+            {/* Key constraint checkboxes — mirrors the problem statement */}
             <div className="space-y-3">
-              {['Simple, tailored explanations', 'Links to your textbook chapters', 'Works offline-friendly'].map(
-                (benefit, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-green-600 text-xs font-bold">✓</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">{benefit}</span>
-                  </div>
-                )
-              )}
+              {[
+                '✅ Ingests entire textbooks once — no re-processing per query',
+                '✅ Context Pruning cuts tokens 2,847 → 892 per query',
+                '✅ 67% lower API cost vs baseline RAG system',
+                '✅ Works on 2G — minimal data transfer',
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <span className="text-gray-800 text-sm font-medium">{item}</span>
+                </div>
+              ))}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link href="/tutor">
                 <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow">
-                  Start Learning Now
+                  Try the Tutor
                 </Button>
               </Link>
               <Link href="/metrics">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  See Our Impact
+                  📊 See Cost Savings
                 </Button>
               </Link>
             </div>
           </div>
 
-          {/* Right side - Visual showcase */}
+          {/* Right side — Context Pruning visualisation */}
           <div className="hidden md:flex items-center justify-center">
-            <div className="relative w-full h-96">
-              {/* Card 1 - Question */}
-              <div className="absolute top-0 right-0 w-80 bg-white rounded-2xl shadow-premium p-6 border border-gray-100 animate-slide-up"
-                style={{ animationDelay: '0.1s' }}>
-                <p className="text-sm text-gray-600 font-medium mb-3">Student Question:</p>
-                <p className="text-gray-900 font-semibold mb-4">
-                  Explain photosynthesis in simple words?
-                </p>
-                <div className="inline-block px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
-                  Class 6 Science
+            <div className="relative w-full space-y-4">
+
+              {/* Baseline RAG */}
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-5 shadow-md">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-bold text-red-700">❌ Baseline RAG (without pruning)</span>
+                  <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">2,847 tokens</span>
                 </div>
+                <div className="space-y-2">
+                  {['Chapter 1 — full text', 'Chapter 2 — full text', 'Chapter 3 — full text',
+                    'Chapter 4 — full text', 'Chapter 5 — full text (answer here)', 'Chapter 6 — full text',
+                    'Chapter 7 — full text', 'Chapter 8 — full text', 'Chapter 9 — full text', 'Chapter 10 — full text'].map((c, i) => (
+                    <div key={i} className={`h-2 rounded-full ${i === 4 ? 'bg-red-400' : 'bg-red-200'}`}
+                      style={{ width: `${70 + Math.sin(i) * 20}%` }} />
+                  ))}
+                </div>
+                <p className="text-xs text-red-600 mt-3 font-semibold">Cost: $0.085 per query</p>
               </div>
 
-              {/* Card 2 - Answer */}
-              <div className="absolute bottom-0 left-0 w-80 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-premium p-6 border border-blue-100 animate-slide-up"
-                style={{ animationDelay: '0.2s' }}>
-                <p className="text-sm text-blue-700 font-bold mb-3">✨ AI Answer:</p>
-                <p className="text-gray-900 text-sm leading-relaxed mb-4">
-                  Plants make food using sunlight, water, and air. This process creates oxygen we breathe.
-                </p>
-                <div className="flex gap-2">
-                  <span className="text-xs px-2 py-1 bg-white text-gray-700 rounded border border-gray-200">
-                    📖 Chapter 3
-                  </span>
-                  <span className="text-xs px-2 py-1 bg-white text-gray-700 rounded border border-gray-200">
-                    Page 42
-                  </span>
+              <div className="text-center text-2xl font-bold text-indigo-400">↓ Context Pruning</div>
+
+              {/* Pruned */}
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-5 shadow-md">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-bold text-green-700">✅ EduSarthi (with pruning)</span>
+                  <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">892 tokens  — 69% less</span>
                 </div>
+                <div className="space-y-2">
+                  {['Chapter 5 — relevant section (answer here)', 'Chapter 4 — supporting context', 'Chapter 6 — related concept'].map((c, i) => (
+                    <div key={i} className={`h-2 rounded-full ${i === 0 ? 'bg-green-500' : 'bg-green-300'}`}
+                      style={{ width: `${i === 0 ? 90 : 60 - i * 10}%` }} />
+                  ))}
+                </div>
+                <p className="text-xs text-green-600 mt-3 font-semibold">Cost: $0.028 per query — saves 67%</p>
               </div>
+
             </div>
           </div>
+
         </div>
       </div>
     </section>

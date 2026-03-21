@@ -1,13 +1,16 @@
+'use client';
+
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { UploadedTextbook } from '@/types';
+import { UploadedFile } from '@/types';
 import { formatDate, formatFileSize } from '@/lib/utils';
 
 interface UploadedFilesListProps {
-  files: UploadedTextbook[];
+  files: UploadedFile[];
+  onDelete?: (fileId: string) => void;
 }
 
-export function UploadedFilesList({ files }: UploadedFilesListProps) {
+export function UploadedFilesList({ files, onDelete }: UploadedFilesListProps) {
   if (files.length === 0) {
     return (
       <Card>
@@ -44,10 +47,21 @@ export function UploadedFilesList({ files }: UploadedFilesListProps) {
                   </div>
                 </div>
               </div>
-              <div className="flex-shrink-0">
+
+              {/* Right side: badge + delete */}
+              <div className="flex flex-col items-end gap-2 flex-shrink-0">
                 <Badge variant="success" className="whitespace-nowrap">
                   ✓ Ready to use
                 </Badge>
+                {onDelete && (
+                  <button
+                    onClick={() => onDelete(file.id)}
+                    className="text-xs text-red-500 hover:text-red-700 hover:underline transition-colors"
+                    title="Delete this textbook"
+                  >
+                    🗑 Delete
+                  </button>
+                )}
               </div>
             </div>
           </CardContent>

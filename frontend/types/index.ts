@@ -14,6 +14,7 @@ export interface UploadedFile {
   uploadedAt: Date;
   size: number;
   chapters: number;
+  textbook_id?: string; // backend ID for delete/query
 }
 
 export interface ChatMessage {
@@ -35,26 +36,10 @@ export interface TutorAnswer {
 }
 
 export interface MetricsData {
-  tokenReduction: {
-    baseline: number;
-    optimized: number;
-    percentage: number;
-  };
-  latencyReduction: {
-    baseline: number;
-    optimized: number;
-    percentage: number;
-  };
-  costSavings: {
-    baseline: number;
-    optimized: number;
-    percentage: number;
-  };
-  answerRelevance: {
-    baseline: number;
-    optimized: number;
-    percentage: number;
-  };
+  tokenReduction: { baseline: number; optimized: number; percentage: number; };
+  latencyReduction: { baseline: number; optimized: number; percentage: number; };
+  costSavings: { baseline: number; optimized: number; percentage: number; };
+  answerRelevance: { baseline: number; optimized: number; percentage: number; };
   testSize: number;
   testCases: string[];
 }
@@ -65,4 +50,5 @@ export interface UploadedTextbook {
   uploadedAt: Date;
   size: number;
   chapters: number;
+  textbook_id?: string;
 }

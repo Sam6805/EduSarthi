@@ -1,0 +1,32 @@
+    if from_pdf and context_trimmed:
+        prompt = (
+            f"You are EduSarthi, a friendly AI tutor. {lang_note}\n\n"
+            "Use ONLY the following textbook context to answer.\n\n"
+            f"Context:\n{context_trimmed}\n\nQuestion: {question}\n\n"
+            "1. Simple explanation (2-3 sentences)\n2. Detailed explanation (4-5 sentences)\n\n"
+            'Reply ONLY with JSON: {"simple_answer": "...", "detailed_answer": "..."}'
+        )
+    elif context_trimmed:
+        # Sample textbook curriculum context — give class-appropriate answer
+        prompt = (
+            f"You are EduSarthi, a friendly AI tutor for Indian school students. {lang_note}\n\n"
+            f"{context_trimmed}\n\n"
+            f"Student question: {question}\n\n"
+            "Give a curriculum-aligned answer for the class level above.\n"
+            "1. Simple explanation (2-3 sentences, easy for a student)\n"
+            "2. Detailed explanation (4-5 sentences with examples)\n\n"
+            'Reply ONLY with JSON: {"simple_answer": "...", "detailed_answer": "..."}'
+        )
+    else:
+        not_found = (
+            "यह प्रश्न आपकी पाठ्यपुस्तक में नहीं मिला, लेकिन सामान्य उत्तर:"
+            if language == "hi"
+            else "This topic wasn't found in your textbook, but here's a general answer:"
+        )
+        prompt = (
+            f"You are EduSarthi, a friendly AI tutor for Indian school students. {lang_note}\n\n"
+            f"Question: {question}\n\n"
+            f"Start simple_answer with: '{not_found}'\n"
+            "Then give a helpful general educational answer.\n\n"
+            'Reply ONLY with JSON: {"simple_answer": "...", "detailed_answer": "..."}'
+        )
