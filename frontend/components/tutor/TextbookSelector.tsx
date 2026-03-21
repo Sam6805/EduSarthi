@@ -1,37 +1,44 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { TEXTBOOKS } from '@/constants/textbooks';
+
+interface UploadedEntry {
+  id: string;
+  filename: string;
+  chapters: number;
+  textbook_id?: string;
+}
 
 interface TextbookSelectorProps {
   selectedId: string;
   onSelect: (id: string) => void;
 }
 
+const STORAGE_KEY = 'uploadedFiles_v2'; // must match upload/page.tsx
+
+function loadUploaded(): UploadedEntry[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as UploadedEntry[];
+  } catch {
+    return [];
+  }
+}
+
 export function TextbookSelector({ selectedId, onSelect }: TextbookSelectorProps) {
-  const [allTextbooks, setAllTextbooks] = useState(TEXTBOOKS);
+  const [uploaded, setUploaded] = useState<UploadedEntry[]>([]);
+
+  const refresh = () => setUploaded(loadUploaded());
 
   useEffect(() => {
-    // Load uploaded files from localStorage
-    const stored = localStorage.getItem('uploadedFiles');
-    if (stored) {
-      try {
-        const uploadedFiles = JSON.parse(stored);
-        // Combine sample textbooks with uploaded files
-        setAllTextbooks([
-          ...TEXTBOOKS,
-          ...uploadedFiles.map((file: any) => ({
-            id: file.id,
-            name: file.filename.replace('.pdf', '').replace(/_/g, ' '),
-            chapters: file.chapters,
-            isUploaded: true,
-          })),
-        ]);
-      } catch (error) {
-        console.error('Failed to load uploaded files:', error);
-        setAllTextbooks(TEXTBOOKS);
-      }
-    } else {
-      setAllTextbooks(TEXTBOOKS);
-    }
+    // Load on mount
+    refresh();
+
+    // Refresh whenever upload page saves new files
+    window.addEventListener('storage', refresh);
+    return () => window.removeEventListener('storage', refresh);
   }, []);
 
   return (
@@ -43,21 +50,28 @@ export function TextbookSelector({ selectedId, onSelect }: TextbookSelectorProps
         className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       >
         <optgroup label="Sample Textbooks">
-          {TEXTBOOKS.map((textbook) => (
-            <option key={textbook.id} value={textbook.id}>
-              {textbook.name} ({textbook.chapters} chapters)
+          {TEXTBOOKS.map((tb) => (
+            <option key={tb.id} value={tb.id}>
+              {tb.name} ({tb.chapters} chapters)
             </option>
           ))}
         </optgroup>
-        {allTextbooks.some((t) => 'isUploaded' in t) && (
+
+        {uploaded.length > 0 && (
           <optgroup label="Your Uploads">
-            {allTextbooks
-              .filter((t) => 'isUploaded' in t)
-              .map((textbook) => (
-                <option key={textbook.id} value={textbook.id}>
-                  📄 {textbook.name} ({textbook.chapters} chapters)
+            {uploaded.map((file) => {
+              // Use backend textbook_id for querying if available, else fallback to file.id
+              const queryId = file.textbook_id || file.id;
+              const displayName = file.filename
+                .replace(/\.pdf$/i, '')
+                .replace(/_/g, ' ')
+                .replace(/-/g, ' ');
+              return (
+                <option key={file.id} value={queryId}>
+                  📄 {displayName} ({file.chapters} chapters)
                 </option>
-              ))}
+              );
+            })}
           </optgroup>
         )}
       </select>

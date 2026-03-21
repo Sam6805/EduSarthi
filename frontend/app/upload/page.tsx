@@ -3,37 +3,45 @@
 import { useState, useEffect } from 'react';
 import { UploadTextbook } from '@/components/upload/UploadTextbook';
 import { UploadedFilesList } from '@/components/upload/UploadedFilesList';
-import { UPLOADED_TEXTBOOKS } from '@/constants/textbooks';
 import { Card, CardContent } from '@/components/ui/Card';
 import { UploadedFile } from '@/types';
+import { deleteTextbook } from '@/lib/mockApi';
+
+const STORAGE_KEY = 'uploadedFiles_v2';
 
 export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>(UPLOADED_TEXTBOOKS);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [deleteStatus, setDeleteStatus] = useState<string | null>(null);
 
-  // Load uploaded files from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem('uploadedFiles');
+    // Clean up old storage key to prevent stale duplicates in selector
+    localStorage.removeItem('uploadedFiles');
+
+    // Load from new key
+    const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        const parsed = JSON.parse(stored).map((file: any) => ({
-          ...file,
-          uploadedAt: new Date(file.uploadedAt),
+        const parsed = JSON.parse(stored).map((f: any) => ({
+          ...f,
+          uploadedAt: new Date(f.uploadedAt),
         }));
-        setUploadedFiles([...UPLOADED_TEXTBOOKS, ...parsed]);
-      } catch (error) {
-        console.error('Failed to load uploaded files:', error);
-      }
-    } else {
-      setUploadedFiles(UPLOADED_TEXTBOOKS);
+        setUploadedFiles(parsed);
+      } catch {}
     }
   }, []);
 
+  const saveToStorage = (files: UploadedFile[]) => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(files.map((f) => ({ ...f, uploadedAt: f.uploadedAt.toISOString() })))
+    );
+    window.dispatchEvent(new Event('storage'));
+  };
+
   const handleFileSelect = async (file: File) => {
     setUploading(true);
-    
     try {
-      // Try to upload to backend first
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const formData = new FormData();
       formData.append('file', file);
@@ -41,68 +49,87 @@ export default function UploadPage() {
       formData.append('class_level', 'Auto-detected');
       formData.append('subject', 'General');
 
+      let realChapters = 1;
+      let backendId: string | undefined;
+
       try {
         const response = await fetch(`${backendUrl}/api/ingest/upload`, {
           method: 'POST',
           body: formData,
         });
-
         if (response.ok) {
           const data = await response.json();
-          console.log('Backend upload successful:', data);
-        } else {
-          console.warn('Backend upload failed, saving to local storage only');
+          realChapters = data.chapters_extracted ?? 1;
+          backendId = data.textbook_id;
+          console.log(`Upload success: ${realChapters} chapters, ID: ${backendId}`);
         }
-      } catch (error) {
-        console.warn('Backend not available, saving to local storage only:', error);
+      } catch (err) {
+        console.warn('Backend upload failed:', err);
       }
 
-      // Create new uploaded file
       const newFile: UploadedFile = {
-        id: `uploaded-${Math.random().toString(36).substr(2, 9)}`,
+        id: backendId || `uploaded-${Math.random().toString(36).substr(2, 9)}`,
         filename: file.name,
         uploadedAt: new Date(),
-        size: file.size / (1024 * 1024), // Convert to MB
-        chapters: Math.floor(Math.random() * 20) + 10,
+        size: file.size / (1024 * 1024),
+        chapters: realChapters,
+        textbook_id: backendId,
       };
 
-      // Add to list
-      setUploadedFiles((prev) => [...prev, newFile]);
-
-      // Save to localStorage (only custom uploads, not defaults)
-      const customUploads = uploadedFiles.filter((f) => f.id.startsWith('uploaded-'));
-      const newCustomUploads = [...customUploads, newFile];
-      localStorage.setItem(
-        'uploadedFiles',
-        JSON.stringify(newCustomUploads.map((f) => ({ ...f, uploadedAt: f.uploadedAt.toISOString() })))
-      );
-    } catch (error) {
-      console.error('Upload error:', error);
+      const updated = [...uploadedFiles, newFile];
+      setUploadedFiles(updated);
+      saveToStorage(updated);
+    } catch (err) {
+      console.error('Upload error:', err);
     } finally {
       setUploading(false);
     }
   };
 
+  const handleDelete = async (fileId: string) => {
+    const file = uploadedFiles.find((f) => f.id === fileId);
+    if (!file) return;
+
+    const confirmed = window.confirm(`Delete "${file.filename}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeleteStatus('Deleting...');
+    const idToDelete = file.textbook_id || file.id;
+    if (idToDelete) {
+      const ok = await deleteTextbook(idToDelete);
+      if (!ok) console.warn('Backend delete failed – removing from UI only');
+    }
+
+    const updated = uploadedFiles.filter((f) => f.id !== fileId);
+    setUploadedFiles(updated);
+    saveToStorage(updated);
+    setDeleteStatus(`"${file.filename}" deleted`);
+    setTimeout(() => setDeleteStatus(null), 3000);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-        {/* Header */}
+
         <div className="mb-16 space-y-4 animate-slide-up">
           <div className="inline-block">
             <span className="px-4 py-2 bg-amber-100 text-amber-700 font-semibold text-sm rounded-full">
               📚 Manage Your Textbooks
             </span>
           </div>
-          <h1 className="text-gray-900">
-            Upload Your Textbooks and Start Learning
-          </h1>
+          <h1 className="text-gray-900">Upload Your Textbooks and Start Learning</h1>
           <p className="text-xl text-gray-600 max-w-2xl">
-            Add your school PDFs in seconds. We'll index them and make every concept instantly searchable.
+            Add your school PDFs in seconds. Indexed once into FAISS — no re-processing per query.
           </p>
         </div>
 
+        {deleteStatus && (
+          <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+            {deleteStatus}
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8 mb-16">
-          {/* Upload card */}
           <div className="lg:col-span-2 space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Add New Textbook</h2>
             <UploadTextbook onFileSelect={handleFileSelect} loading={uploading} />
@@ -111,38 +138,33 @@ export default function UploadPage() {
                 <p className="text-sm text-green-900 font-semibold flex items-start gap-3">
                   <span className="text-lg flex-shrink-0">✓</span>
                   <span>
-                    <strong>Upload successful!</strong> Your textbook will be processed in minutes. You can then start asking questions about any concept.
+                    <strong>One-time processing:</strong> Your textbook is extracted, chunked, and
+                    indexed into FAISS. All future questions are answered from the index — no re-processing.
                   </span>
                 </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Info card */}
           <div className="lg:col-span-1 space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Upload Tips</h2>
             <Card>
               <CardContent className="pt-6 space-y-6 text-sm text-gray-700">
                 <div>
-                  <p className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <span className="text-lg">✓</span> What works best
-                  </p>
-                  <ul className="space-y-2 text-gray-700 ml-8">
-                    <li>• Clear, readable PDFs</li>
-                    <li>• Textbooks (NCERT / State board)</li>
+                  <p className="font-bold text-gray-900 mb-3">✓ What works best</p>
+                  <ul className="space-y-2 ml-4">
+                    <li>• Clear, text-based PDFs</li>
+                    <li>• NCERT / State board textbooks</li>
                     <li>• Complete chapters</li>
                     <li>• Under 100MB</li>
                   </ul>
                 </div>
                 <div className="border-t border-gray-200 pt-4">
-                  <p className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <span className="text-lg">✗</span> Not supported
-                  </p>
-                  <ul className="space-y-2 text-gray-700 ml-8">
-                    <li>• Handwritten or blurry PDFs</li>
-                    <li>• Unknown languages</li>
-                    <li>• Sample papers only</li>
-                    <li>• Copyrighted without permission</li>
+                  <p className="font-bold text-gray-900 mb-3">✗ Not supported</p>
+                  <ul className="space-y-2 ml-4">
+                    <li>• Scanned / image PDFs</li>
+                    <li>• Handwritten notes</li>
+                    <li>• Over 100MB</li>
                   </ul>
                 </div>
               </CardContent>
@@ -150,23 +172,14 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {/* Uploaded files */}
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Your Textbooks <span className="text-base font-normal text-gray-500">({uploadedFiles.length})</span>
+            Your Textbooks{' '}
+            <span className="text-base font-normal text-gray-500">({uploadedFiles.length})</span>
           </h2>
-          <UploadedFilesList files={uploadedFiles} />
-
-          {uploadedFiles.length === 0 && (
-            <Card>
-              <CardContent className="pt-12 text-center py-16">
-                <div className="text-5xl mb-4">📖</div>
-                <p className="text-lg text-gray-600">No textbooks uploaded yet.</p>
-                <p className="text-gray-500">Upload your first PDF to get started with smart learning!</p>
-              </CardContent>
-            </Card>
-          )}
+          <UploadedFilesList files={uploadedFiles} onDelete={handleDelete} />
         </div>
+
       </div>
     </div>
   );
