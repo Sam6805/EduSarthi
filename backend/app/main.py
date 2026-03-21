@@ -1,9 +1,18 @@
 """Main FastAPI application."""
 
+import sys
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
+
+# Support running with: python app/main.py
+if __package__ is None or __package__ == "":
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
 
 from app.config import API_TITLE, API_VERSION, API_DESCRIPTION
 from app.utils.helpers import setup_logger
